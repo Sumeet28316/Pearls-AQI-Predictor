@@ -24,4 +24,4 @@ jobs:
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
-        run: python src/feature_pipeline.py
+        run: python -m src.feature_pipeline

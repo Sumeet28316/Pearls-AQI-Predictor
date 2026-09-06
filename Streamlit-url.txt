@@ -1,0 +1,1 @@
+https://sumeetkumar-pearls-aqi-predictor.streamlit.app/

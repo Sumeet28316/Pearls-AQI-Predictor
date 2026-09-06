@@ -45,11 +45,26 @@ st.markdown("""
 
     html, body, [class*="css"] {
         font-family: 'IBM Plex Mono', monospace;
-        color: var(--ink);
+        color: var(--ink) !important;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    p, span, li, label, div,
+    [data-testid="stMarkdownContainer"],
+    [data-testid="stMarkdownContainer"] *,
+    [data-testid="stText"],
+    [data-testid="stCaptionContainer"],
+    .stMarkdown, .stCaption, .stRadio label, .stRadio span {
+        color: var(--ink) !important;
     }
 
     h1, h2, h3, h4 {
         font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .sub-header, .pred-label, .pred-meta, .station-label,
+    [data-testid="stCaptionContainer"], .stCaption {
+        color: var(--ink-dim) !important;
     }
 
     /* App shell — faint instrument-panel grid texture */

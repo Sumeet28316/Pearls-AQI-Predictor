@@ -15,145 +15,292 @@ import matplotlib.pyplot as plt
 # Page configuration
 st.set_page_config(
     page_title="Karachi AQI Predictor",
-    page_icon="🌍",
+    page_icon="📡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS - Teal & Amber Theme
+# Custom CSS — "Monitoring Station" theme: dark instrument panel,
+# flat readout colors, condensed display type + monospace data type.
 st.markdown("""
 <style>
-    /* Import Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
-    /* Global Styles */
-    * {
-        font-family: 'Inter', sans-serif;
+    :root {
+        --bg-base: #11161a;
+        --bg-panel: #171f25;
+        --bg-panel-alt: #1c252c;
+        --line: rgba(236,231,216,0.10);
+        --ink: #ece7d8;
+        --ink-dim: #8b968f;
+        --amber: #e3b148;
+        --teal: #4f9d8a;
+        --good: #4f9d8a;
+        --moderate: #d9a83f;
+        --sensitive: #d98a3f;
+        --unhealthy: #c15a3a;
+        --very-unhealthy: #8b5a99;
+        --hazardous: #7a2f3a;
+    }
+
+    html, body, [class*="css"] {
+        font-family: 'IBM Plex Mono', monospace;
+        color: var(--ink);
     }
 
     h1, h2, h3, h4 {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Barlow Condensed', sans-serif;
     }
 
-    /* Main Header */
+    /* App shell — faint instrument-panel grid texture */
+    [data-testid="stAppViewContainer"] {
+        background-color: var(--bg-base);
+        background-image:
+            linear-gradient(var(--line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 42px 42px;
+    }
+
+    [data-testid="stHeader"] {
+        background: transparent;
+    }
+
+    [data-testid="stAppViewBlockContainer"] {
+        padding-top: 1.5rem;
+    }
+
+    /* Station title */
+    .station-strap {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.2rem;
+        padding-left: 2rem;
+    }
+
+    .live-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--amber);
+        box-shadow: 0 0 0 0 rgba(227,177,72,0.6);
+        animation: pulse 2.4s infinite;
+    }
+
+    @keyframes pulse {
+        0%   { box-shadow: 0 0 0 0 rgba(227,177,72,0.55); }
+        70%  { box-shadow: 0 0 0 9px rgba(227,177,72,0); }
+        100% { box-shadow: 0 0 0 0 rgba(227,177,72,0); }
+    }
+
+    .station-label {
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--amber);
+        letter-spacing: 1px;
+    }
+
     .main-header {
-        font-size: 3.2rem;
+        font-size: 2.6rem;
         font-weight: 700;
-        background: linear-gradient(120deg, #0f766e 0%, #0891b2 50%, #0d9488 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: var(--ink);
         text-align: left;
-        margin-bottom: 0.3rem;
-        letter-spacing: -0.5px;
+        margin-bottom: 0.2rem;
+        padding-left: 2rem;
+        line-height: 1.05;
     }
 
     .sub-header {
         text-align: left;
-        color: #64748b;
-        font-size: 1.05rem;
-        margin-bottom: 1.5rem;
-        font-weight: 500;
+        color: var(--ink-dim);
+        font-size: 0.92rem;
+        margin-bottom: 1.4rem;
+        padding-left: 2rem;
+        font-family: 'IBM Plex Mono', monospace;
     }
 
-    /* Prediction Cards */
+    /* Prediction readout panels */
     .prediction-card {
-        background: linear-gradient(145deg, #0f766e 0%, #134e4a 100%);
-        padding: 1.8rem;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(15, 118, 110, 0.25);
-        color: white;
-        text-align: center;
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-        border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .prediction-card:hover {
-        transform: translateY(-6px) scale(1.01);
-        box-shadow: 0 18px 36px rgba(15, 118, 110, 0.35);
+        background: var(--bg-panel);
+        padding: 1.4rem 1.5rem 1.2rem 1.5rem;
+        border-radius: 4px;
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--ink-dim);
+        color: var(--ink);
+        text-align: left;
     }
 
     .pred-label {
-        font-size: 0.85rem;
-        opacity: 0.85;
-        margin-bottom: 0.4rem;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        font-weight: 600;
+        font-size: 0.78rem;
+        color: var(--ink-dim);
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.5px;
+        font-family: 'IBM Plex Mono', monospace;
     }
 
     .pred-value {
-        font-size: 2.8rem;
-        font-weight: 700;
-        margin: 0.4rem 0;
-        font-family: 'Poppins', sans-serif;
+        font-size: 2.6rem;
+        font-weight: 600;
+        margin: 0.1rem 0 0.6rem 0;
+        font-family: 'IBM Plex Mono', monospace;
+        letter-spacing: -1px;
     }
 
     .pred-category {
-        font-size: 1rem;
-        font-weight: 600;
-        background: rgba(255,255,255,0.18);
-        padding: 0.4rem 1.1rem;
-        border-radius: 24px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 0.25rem 0.7rem;
+        border-radius: 3px;
         display: inline-block;
-        margin-top: 0.4rem;
-        backdrop-filter: blur(4px);
+        margin-top: 0.2rem;
+        font-family: 'IBM Plex Mono', monospace;
+        border: 1px solid currentColor;
     }
 
-    /* AQI Badge Colors - warm amber/coral accent palette */
-    .aqi-good { background: linear-gradient(145deg, #059669 0%, #047857 100%); }
-    .aqi-satisfactory { background: linear-gradient(145deg, #ca8a04 0%, #a16207 100%); }
-    .aqi-moderate { background: linear-gradient(145deg, #ea580c 0%, #c2410c 100%); }
-    .aqi-poor { background: linear-gradient(145deg, #dc2626 0%, #991b1b 100%); }
-    .aqi-verypoor { background: linear-gradient(145deg, #9333ea 0%, #6b21a8 100%); }
-    .aqi-severe { background: linear-gradient(145deg, #881337 0%, #4c0519 100%); }
+    .tick-scale {
+        width: 100%;
+        height: 5px;
+        background: var(--bg-panel-alt);
+        border-radius: 3px;
+        margin-top: 1rem;
+        overflow: hidden;
+    }
 
-    /* Section Headers */
+    .tick-fill {
+        height: 100%;
+        border-radius: 3px;
+    }
+
+    /* Flat category colors — left border, digit color, tag color all match */
+    .aqi-good           { border-left-color: var(--good); }
+    .aqi-good .pred-value       { color: var(--good); }
+    .aqi-good .pred-category    { color: var(--good); }
+    .aqi-good .tick-fill        { background: var(--good); }
+
+    .aqi-satisfactory           { border-left-color: var(--moderate); }
+    .aqi-satisfactory .pred-value    { color: var(--moderate); }
+    .aqi-satisfactory .pred-category { color: var(--moderate); }
+    .aqi-satisfactory .tick-fill     { background: var(--moderate); }
+
+    .aqi-moderate           { border-left-color: var(--sensitive); }
+    .aqi-moderate .pred-value    { color: var(--sensitive); }
+    .aqi-moderate .pred-category { color: var(--sensitive); }
+    .aqi-moderate .tick-fill     { background: var(--sensitive); }
+
+    .aqi-poor           { border-left-color: var(--unhealthy); }
+    .aqi-poor .pred-value    { color: var(--unhealthy); }
+    .aqi-poor .pred-category { color: var(--unhealthy); }
+    .aqi-poor .tick-fill     { background: var(--unhealthy); }
+
+    .aqi-verypoor           { border-left-color: var(--very-unhealthy); }
+    .aqi-verypoor .pred-value    { color: var(--very-unhealthy); }
+    .aqi-verypoor .pred-category { color: var(--very-unhealthy); }
+    .aqi-verypoor .tick-fill     { background: var(--very-unhealthy); }
+
+    .aqi-severe           { border-left-color: var(--hazardous); }
+    .aqi-severe .pred-value    { color: var(--hazardous); }
+    .aqi-severe .pred-category { color: var(--hazardous); }
+    .aqi-severe .tick-fill     { background: var(--hazardous); }
+
+    .pred-meta {
+        margin-top: 1rem;
+        font-size: 0.78rem;
+        color: var(--ink-dim);
+        font-family: 'IBM Plex Mono', monospace;
+        line-height: 1.5;
+    }
+
+    /* Section headers — panel divider, not a card */
     .section-header {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #134e4a;
-        margin: 2.2rem 0 1.1rem 0;
-        border-left: 5px solid #0d9488;
-        padding-left: 1rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--ink);
+        margin: 2.2rem 0 1rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
     }
 
-    /* Stats Cards */
-    .stat-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 14px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-        border-left: 4px solid #0d9488;
-    }
-
+    /* Sidebar */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #ecfeff 0%, #cffafe 100%);
+        background: var(--bg-panel);
+        border-right: 1px solid var(--line);
     }
 
-    /* Force sidebar text to be dark to contrast with the light background */
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] h3,
     [data-testid="stSidebar"] span,
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] li,
     [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] * {
-        color: #134e4a !important;
+        color: var(--ink) !important;
+        font-family: 'IBM Plex Mono', monospace;
     }
 
-    /* Button Styling */
+    [data-testid="stSidebar"] h3 {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 1.1rem;
+        letter-spacing: 0.3px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 0.4rem;
+    }
+
+    /* Buttons */
     .stButton>button {
-        background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.5rem 2rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
+        background: var(--bg-panel-alt);
+        color: var(--amber);
+        border: 1px solid var(--amber);
+        border-radius: 4px;
+        padding: 0.5rem 1.6rem;
+        font-weight: 500;
+        font-family: 'IBM Plex Mono', monospace;
+        transition: all 0.2s ease;
     }
 
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(8, 145, 178, 0.4);
+        background: var(--amber);
+        color: var(--bg-base);
+    }
+
+    /* Alerts / info-warning-error boxes */
+    [data-testid="stNotification"], .stAlert {
+        background: var(--bg-panel) !important;
+        border: 1px solid var(--line) !important;
+        border-left: 3px solid var(--amber) !important;
+        color: var(--ink) !important;
+        font-family: 'IBM Plex Mono', monospace;
+        border-radius: 4px;
+    }
+
+    /* Metrics */
+    [data-testid="stMetric"] {
+        background: var(--bg-panel);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 0.9rem 1rem;
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: var(--ink-dim) !important;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: var(--amber) !important;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* Dataframe */
+    [data-testid="stDataFrame"] {
+        border: 1px solid var(--line);
+        border-radius: 4px;
+    }
+
+    /* Divider */
+    hr {
+        border-color: var(--line) !important;
     }
 
     /* Hide Streamlit Branding */
@@ -162,12 +309,14 @@ st.markdown("""
 
     /* Custom Footer */
     .custom-footer {
-        text-align: center;
-        padding: 2rem;
-        color: #64748b;
-        font-size: 0.88rem;
-        margin-top: 3rem;
-        border-top: 1px solid #e2e8f0;
+        text-align: left;
+        padding: 1.6rem 0.2rem;
+        color: var(--ink-dim);
+        font-size: 0.78rem;
+        margin-top: 2.5rem;
+        border-top: 1px solid var(--line);
+        font-family: 'IBM Plex Mono', monospace;
+        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -210,32 +359,38 @@ def get_epa_aqi_and_style(pm25):
         return int(round(aqi)), "Hazardous", "aqi-severe", "☠️"
 
 def main():
-    # Modern Header with AQI Scale
+    # Station header with live indicator + AQI scale legend
     header_col, scale_col = st.columns([3, 1])
     
     with header_col:
-        st.markdown('<h1 class="main-header" style="text-align: left; padding-left: 2rem;">🌍 Karachi Air Quality Predictor</h1>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-header" style="text-align: left; padding-left: 2rem;">Real-time AQI predictions powered by Machine Learning | Updated hourly with live data</p>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="station-strap">
+            <div class="live-dot"></div>
+            <span class="station-label">LIVE READOUT · UPDATED HOURLY</span>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">Karachi Air Quality Station</h1>', unsafe_allow_html=True)
+        st.markdown('<p class="sub-header">Forecasting PM2.5 up to 72 hours ahead from live atmospheric data.</p>', unsafe_allow_html=True)
     
     with scale_col:
         # Kept your exact HTML layout, just updated the scale numbers to reflect EPA 0-500
         st.markdown("""
-        <div style='padding: 1rem; margin-top: 1rem; background: white; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.06);'>
-            <h4 style='font-size: 1rem; margin-bottom: 0.5rem; color: #134e4a;'>📊 AQI Scale</h4>
-            <div style='font-size: 0.75rem;'>
-            <div style='padding: 0.3rem 0.5rem; background: #059669; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟢 Good (0-50)</div>
-            <div style='padding: 0.3rem 0.5rem; background: #ca8a04; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟡 Moderate (51-100)</div>
-            <div style='padding: 0.3rem 0.5rem; background: #ea580c; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟠 Unhealthy/Sensitive (101-150)</div>
-            <div style='padding: 0.3rem 0.5rem; background: #dc2626; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🔴 Unhealthy (151-200)</div>
-            <div style='padding: 0.3rem 0.5rem; background: #9333ea; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟣 Very Unhealthy (201-300)</div>
-            <div style='padding: 0.3rem 0.5rem; background: #881337; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>⚫ Hazardous (301+)</div>
+        <div style='padding: 0.9rem 1rem; margin-top: 0.4rem; background: #171f25; border: 1px solid rgba(236,231,216,0.10); border-radius: 4px;'>
+            <h4 style='font-size: 0.85rem; margin-bottom: 0.6rem; color: #ece7d8; font-family: "Barlow Condensed", sans-serif; letter-spacing: 0.3px;'>AQI Scale</h4>
+            <div style='font-size: 0.72rem; font-family: "IBM Plex Mono", monospace; color: #ece7d8;'>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#4f9d8a;display:inline-block;border-radius:2px;"></span> Good (0–50)</div>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#d9a83f;display:inline-block;border-radius:2px;"></span> Moderate (51–100)</div>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#d98a3f;display:inline-block;border-radius:2px;"></span> Sensitive (101–150)</div>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#c15a3a;display:inline-block;border-radius:2px;"></span> Unhealthy (151–200)</div>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#8b5a99;display:inline-block;border-radius:2px;"></span> Very Unhealthy (201–300)</div>
+            <div style='display:flex; align-items:center; gap:0.5rem; margin: 0.3rem 0;'><span style="width:9px;height:9px;background:#7a2f3a;display:inline-block;border-radius:2px;"></span> Hazardous (301+)</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
     
     # Sidebar
     with st.sidebar:
-        st.markdown("### ⚙️ Settings")
+        st.markdown("### Controls")
         
         # Model selection
         st.markdown("**Model Selection**")
@@ -250,25 +405,25 @@ def main():
         st.divider()
         
         # About section
-        st.markdown("### 📖 About This App")
+        st.markdown("### About This App")
         st.markdown("""
         This dashboard predicts **Air Quality Index (AQI)** for Karachi using:
         
-        - 🤖 **Machine Learning** models
-        - 📊 **78+ days** of historical data
-        - 🔄 **Hourly updates** via GitHub Actions
-        - 🌐 **Live APIs** (Open-Meteo & OpenWeather)
+        - Machine learning models
+        - 78+ days of historical data
+        - Hourly updates via GitHub Actions
+        - Live APIs (Open-Meteo & OpenWeather)
         
         **Prediction Horizons:**
-        - ☀️ **24h**: Tomorrow's AQI
-        - 🌤️ **48h**: Day after tomorrow
-        - 🌥️ **72h**: 3 days ahead
+        - 24h: Tomorrow's AQI
+        - 48h: Day after tomorrow
+        - 72h: 3 days ahead
         """)
         
         st.divider()
         
         # Tech Stack
-        st.markdown("### 🛠️ Tech Stack")
+        st.markdown("### Tech Stack")
         st.markdown("""
         - **Frontend**: Streamlit
         - **ML**: Scikit-learn, XGBoost, LightGBM
@@ -279,7 +434,7 @@ def main():
         
         # Refresh button
         st.markdown("")
-        if st.button("🔄 Refresh Data", use_container_width=True):
+        if st.button("Refresh Data", use_container_width=True):
             st.cache_resource.clear()
             st.rerun()
     
@@ -290,19 +445,19 @@ def main():
         db = init_database()
         
         # Get predictions
-        with st.spinner("🔮 Generating predictions..."):
+        with st.spinner("Generating predictions..."):
             predictions = registry.predict_multi_horizon(model_name=selected_model)
         
         if not predictions:
-            st.error("❌ Unable to generate predictions. Please check the model and data.")
+            st.error("Unable to generate predictions. Please check the model and data.")
             return
         
         # Display model info - Updated to use Regression metrics
         metrics = predictions.get('model_metrics', {})
-        st.info(f"🤖 **Model:** {predictions['model_used']} | **RMSE:** {metrics.get('test_rmse', 0):.2f} | **MAE:** {metrics.get('test_mae', 0):.2f} | **R²:** {metrics.get('test_r2', 0):.2f}")
+        st.info(f"Model: {predictions['model_used']}  ·  RMSE: {metrics.get('test_rmse', 0):.2f}  ·  MAE: {metrics.get('test_mae', 0):.2f}  ·  R²: {metrics.get('test_r2', 0):.2f}")
         
         # Predictions Section
-        st.markdown('<h2 class="section-header">🔮 Future AQI Predictions</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Future AQI Predictions</h2>', unsafe_allow_html=True)
         
         cols = st.columns(3)
         
@@ -310,14 +465,16 @@ def main():
         if '24h_ahead' in predictions:
             pred_24h = predictions['24h_ahead']
             aqi_24h, category_24h, class_24h, emoji_24h = get_epa_aqi_and_style(pred_24h['prediction'])
+            fill_24h = min(aqi_24h / 500 * 100, 100)
             
             with cols[0]:
                 st.markdown(f"""
                 <div class="prediction-card {class_24h}">
                     <div class="pred-label">Tomorrow</div>
-                    <div class="pred-value">{emoji_24h} {aqi_24h}</div>
+                    <div class="pred-value">{aqi_24h}</div>
                     <div class="pred-category">{category_24h}</div>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.9;">{pred_24h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_24h['prediction']:.1f} µg/m³</p>
+                    <div class="tick-scale"><div class="tick-fill" style="width:{fill_24h:.0f}%;"></div></div>
+                    <p class="pred-meta">{pred_24h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_24h['prediction']:.1f} µg/m³</p>
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -325,14 +482,16 @@ def main():
         if '48h_ahead' in predictions:
             pred_48h = predictions['48h_ahead']
             aqi_48h, category_48h, class_48h, emoji_48h = get_epa_aqi_and_style(pred_48h['prediction'])
+            fill_48h = min(aqi_48h / 500 * 100, 100)
             
             with cols[1]:
                 st.markdown(f"""
                 <div class="prediction-card {class_48h}">
                     <div class="pred-label">Day After Tomorrow</div>
-                    <div class="pred-value">{emoji_48h} {aqi_48h}</div>
+                    <div class="pred-value">{aqi_48h}</div>
                     <div class="pred-category">{category_48h}</div>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.9;">{pred_48h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_48h['prediction']:.1f} µg/m³</p>
+                    <div class="tick-scale"><div class="tick-fill" style="width:{fill_48h:.0f}%;"></div></div>
+                    <p class="pred-meta">{pred_48h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_48h['prediction']:.1f} µg/m³</p>
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -340,14 +499,16 @@ def main():
         if '72h_ahead' in predictions:
             pred_72h = predictions['72h_ahead']
             aqi_72h, category_72h, class_72h, emoji_72h = get_epa_aqi_and_style(pred_72h['prediction'])
+            fill_72h = min(aqi_72h / 500 * 100, 100)
             
             with cols[2]:
                 st.markdown(f"""
                 <div class="prediction-card {class_72h}">
                     <div class="pred-label">3 Days Ahead</div>
-                    <div class="pred-value">{emoji_72h} {aqi_72h}</div>
+                    <div class="pred-value">{aqi_72h}</div>
                     <div class="pred-category">{category_72h}</div>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.9;">{pred_72h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_72h['prediction']:.1f} µg/m³</p>
+                    <div class="tick-scale"><div class="tick-fill" style="width:{fill_72h:.0f}%;"></div></div>
+                    <p class="pred-meta">{pred_72h['prediction_time'].strftime('%b %d, %H:%M')}<br>Raw PM2.5: {pred_72h['prediction']:.1f} µg/m³</p>
                 </div>
                 """, unsafe_allow_html=True)
         
@@ -357,7 +518,7 @@ def main():
         st.markdown("")
         
         # Historical Data Section
-        st.markdown('<h2 class="section-header">📈 Historical AQI Trends</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Historical AQI Trend</h2>', unsafe_allow_html=True)
         
         # Get historical data
         df_history = db.get_latest_features(n_hours=168)  # Last 7 days
@@ -376,8 +537,8 @@ def main():
                 y=df_history['calculated_aqi'],
                 mode='lines+markers',
                 name='Historical AQI',
-                line=dict(color='#0891b2', width=2.5),
-                marker=dict(size=4, color='#0f766e')
+                line=dict(color='#4f9d8a', width=2),
+                marker=dict(size=4, color='#4f9d8a')
             ))
             
             # Add prediction points
@@ -400,29 +561,31 @@ def main():
                     y=pred_values,
                     mode='markers',
                     name='Predictions',
-                    marker=dict(size=13, color='#ea580c', symbol='star', line=dict(width=1, color='#7c2d12'))
+                    marker=dict(size=11, color='#e3b148', symbol='diamond', line=dict(width=1, color='#11161a'))
                 ))
             
             fig.update_layout(
                 title={
-                    'text': "AQI Trend - Last 7 Days + Future Predictions",
-                    'font': {'size': 20, 'color': '#134e4a', 'family': 'Poppins'}
+                    'text': "AQI — Last 7 Days + Forecast",
+                    'font': {'size': 18, 'color': '#ece7d8', 'family': 'Barlow Condensed'}
                 },
                 xaxis_title="Date & Time",
                 yaxis_title="AQI Level (0-500 Scale)",
                 hovermode='x unified',
-                height=450,
-                template='plotly_white',
-                plot_bgcolor='rgba(0,0,0,0)',
+                height=440,
+                plot_bgcolor='#171f25',
                 paper_bgcolor='rgba(0,0,0,0)',
-                font={'family': 'Inter'},
+                font={'family': 'IBM Plex Mono', 'color': '#ece7d8'},
+                xaxis=dict(gridcolor='rgba(236,231,216,0.08)', zerolinecolor='rgba(236,231,216,0.08)'),
+                yaxis=dict(gridcolor='rgba(236,231,216,0.08)', zerolinecolor='rgba(236,231,216,0.08)'),
                 showlegend=True,
                 legend=dict(
                     orientation="h",
                     yanchor="bottom",
                     y=1.02,
                     xanchor="right",
-                    x=1
+                    x=1,
+                    font={'color': '#ece7d8'}
                 )
             )
             
@@ -433,7 +596,7 @@ def main():
         st.divider()
         
         # Model Comparison Section
-        st.markdown('<h2 class="section-header">🏆 Model Performance Comparison</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Model Performance Comparison</h2>', unsafe_allow_html=True)
         
         col1, col2 = st.columns([2, 1])
         
@@ -447,7 +610,7 @@ def main():
                         'RMSE': f"{metadata['metrics'].get('test_rmse', 0):.2f}",
                         'MAE': f"{metadata['metrics'].get('test_mae', 0):.2f}",
                         'R² Score': f"{metadata['metrics'].get('test_r2', 0):.2f}",
-                        'Best': '🥇' if metadata.get('is_best', False) else ''
+                        'Best': '★' if metadata.get('is_best', False) else ''
                     })
                 
                 df_models = pd.DataFrame(model_data)
@@ -477,21 +640,24 @@ def main():
                     go.Bar(
                         x=[m['Model'] for m in err_data],
                         y=[m['RMSE'] for m in err_data],
-                        marker_color=['#ea580c' if m.get('Best') else '#0891b2' for m in err_data]
+                        marker_color=['#e3b148' if m.get('Best') else '#4f9d8a' for m in err_data]
                     )
                 ])
                 
                 fig_acc.update_layout(
                     title={
                         'text': "Model Error (Lower is Better)",
-                        'font': {'size': 16, 'color': '#134e4a', 'family': 'Poppins'}
+                        'font': {'size': 15, 'color': '#ece7d8', 'family': 'Barlow Condensed'}
                     },
                     xaxis_title="Model",
                     yaxis_title="RMSE (PM2.5)",
                     height=300,
-                    template='plotly_white',
+                    plot_bgcolor='#171f25',
+                    paper_bgcolor='rgba(0,0,0,0)',
                     showlegend=False,
-                    font={'family': 'Inter'}
+                    font={'family': 'IBM Plex Mono', 'color': '#ece7d8'},
+                    xaxis=dict(gridcolor='rgba(236,231,216,0.08)'),
+                    yaxis=dict(gridcolor='rgba(236,231,216,0.08)')
                 )
                 
                 st.plotly_chart(fig_acc, use_container_width=True)
@@ -499,11 +665,11 @@ def main():
         st.divider()
         
         # SHAP Analysis Section
-        st.markdown('<h2 class="section-header">🔍 Model Interpretability (SHAP Analysis)</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Model Interpretability (SHAP Analysis)</h2>', unsafe_allow_html=True)
         
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%); padding: 1rem; border-radius: 12px; margin-bottom: 1rem;'>
-            <p style='color: white; margin: 0;'><strong>🧠 Understanding Predictions:</strong> SHAP (SHapley Additive exPlanations) shows which features are most important for predictions.</p>
+        <div style='background: #171f25; border: 1px solid rgba(236,231,216,0.10); border-left: 3px solid #e3b148; padding: 0.9rem 1.1rem; border-radius: 4px; margin-bottom: 1rem;'>
+            <p style='color: #ece7d8; margin: 0; font-family: "IBM Plex Mono", monospace; font-size: 0.85rem;'>SHAP (SHapley Additive exPlanations) shows which features are most important for predictions.</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -525,7 +691,7 @@ def main():
                 shap_col1, shap_col2 = st.columns(2)
                 
                 with shap_col1:
-                    st.markdown("#### 🌍 Global Feature Importance")
+                    st.markdown("#### Global Feature Importance")
                     st.caption("Which features matter most overall for predictions?")
                     
                     with st.spinner("Computing SHAP values..."):
@@ -559,9 +725,9 @@ def main():
                             orientation='h',
                             marker=dict(
                                 color=mean_shap['importance'],
-                                colorscale='Teal',
+                                colorscale=[[0, '#1c252c'], [0.5, '#4f9d8a'], [1, '#e3b148']],
                                 showscale=True,
-                                colorbar=dict(title="Impact")
+                                colorbar=dict(title="Impact", tickfont=dict(color='#ece7d8'))
                             )
                         ))
                         
@@ -570,14 +736,17 @@ def main():
                             xaxis_title="Mean |SHAP Value|",
                             yaxis_title="",
                             height=500,
-                            template='plotly_white',
-                            font={'family': 'Inter'}
+                            plot_bgcolor='#171f25',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            font={'family': 'IBM Plex Mono', 'color': '#ece7d8'},
+                            xaxis=dict(gridcolor='rgba(236,231,216,0.08)'),
+                            yaxis=dict(gridcolor='rgba(236,231,216,0.08)')
                         )
                         
                         st.plotly_chart(fig_shap, use_container_width=True)
                 
                 with shap_col2:
-                    st.markdown("#### 🎯 Individual Prediction Explanation")
+                    st.markdown("#### Individual Prediction Explanation")
                     st.caption("Why did the model predict this specific PM2.5 value?")
                     
                     # Explain the most recent prediction (24h ahead input)
@@ -625,9 +794,9 @@ def main():
                             orientation='h',
                             marker=dict(
                                 color=shap_values_list,
-                                colorscale='RdYlGn_r',
+                                colorscale=[[0, '#4f9d8a'], [0.5, '#8b968f'], [1, '#c15a3a']],
                                 showscale=True,
-                                colorbar=dict(title="Effect")
+                                colorbar=dict(title="Effect", tickfont=dict(color='#ece7d8'))
                             ),
                             text=[f"{v:+.3f}" for v in shap_values_list],
                             textposition='outside'
@@ -638,27 +807,30 @@ def main():
                             xaxis_title="SHAP Value (Impact on prediction)",
                             yaxis_title="",
                             height=500,
-                            template='plotly_white',
-                            font={'family': 'Inter'}
+                            plot_bgcolor='#171f25',
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            font={'family': 'IBM Plex Mono', 'color': '#ece7d8'},
+                            xaxis=dict(gridcolor='rgba(236,231,216,0.08)'),
+                            yaxis=dict(gridcolor='rgba(236,231,216,0.08)')
                         )
                         
                         st.plotly_chart(fig_waterfall, use_container_width=True)
                         
-                        st.info("🔵 Positive values push AQI higher | 🟢 Negative values push AQI lower")
+                        st.info("Positive values push AQI higher · Negative values push AQI lower")
                     else:
                         st.warning("Need at least 72 hours of data for individual prediction analysis")
             
             else:
-                st.warning("⚠️ SHAP analysis requires model and data to be available")
+                st.warning("SHAP analysis requires model and data to be available")
         
         except Exception as e:
-            st.error(f"❌ SHAP analysis failed: {str(e)}")
+            st.error(f"SHAP analysis failed: {str(e)}")
             st.caption("Note: SHAP works best with tree-based models (RandomForest, XGBoost, LightGBM)")
         
         st.divider()
         
         # Statistics - Updated to use PM2.5 converted to AQI
-        st.markdown('<h2 class="section-header">📊 Dataset Statistics</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="section-header">Dataset Statistics</h2>', unsafe_allow_html=True)
         
         stat_cols = st.columns(4)
         
@@ -686,15 +858,15 @@ def main():
         # Custom Footer
         st.markdown("""
         <div class="custom-footer">
-            <p><strong>Karachi AQI Predictor</strong> | Powered by Machine Learning</p>
-            <p>Data updated hourly via GitHub Actions | Predictions based on 78+ days of historical data</p>
-            <p>Models: RandomForest, XGBoost, LightGBM | Database: MongoDB Atlas</p>
-            <p style="font-size: 0.8rem; margin-top: 1rem;">© 2026 | Built with ❤️ using Streamlit & Python</p>
+            <p><strong>Karachi AQI Predictor</strong> — Powered by Machine Learning</p>
+            <p>Data updated hourly via GitHub Actions. Predictions based on 78+ days of historical data.</p>
+            <p>Models: RandomForest, XGBoost, LightGBM. Database: MongoDB Atlas.</p>
+            <p style="margin-top: 0.8rem;">© 2026. Built with Streamlit & Python.</p>
         </div>
         """, unsafe_allow_html=True)
         
     except Exception as e:
-        st.error(f"❌ Error: {str(e)}")
+        st.error(f"Error: {str(e)}")
         st.exception(e)
 
 if __name__ == "__main__":

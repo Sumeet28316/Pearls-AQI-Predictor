@@ -20,104 +20,116 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS - Modern & Professional
+# Custom CSS - Teal & Amber Theme
 st.markdown("""
 <style>
     /* Import Google Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
     /* Global Styles */
     * {
         font-family: 'Inter', sans-serif;
     }
-    
+
+    h1, h2, h3, h4 {
+        font-family: 'Poppins', sans-serif;
+    }
+
     /* Main Header */
     .main-header {
-        font-size: 3.5rem;
+        font-size: 3.2rem;
         font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(120deg, #0f766e 0%, #0891b2 50%, #0d9488 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 0.5rem;
+        text-align: left;
+        margin-bottom: 0.3rem;
+        letter-spacing: -0.5px;
     }
-    
+
     .sub-header {
-        text-align: center;
-        color: #6c757d;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
+        text-align: left;
+        color: #64748b;
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
     }
-    
+
     /* Prediction Cards */
     .prediction-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        background: linear-gradient(145deg, #0f766e 0%, #134e4a 100%);
+        padding: 1.8rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 118, 110, 0.25);
         color: white;
         text-align: center;
-        transition: transform 0.3s ease;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        border: 1px solid rgba(255,255,255,0.08);
     }
-    
+
     .prediction-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 18px 36px rgba(15, 118, 110, 0.35);
     }
-    
+
     .pred-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-        margin-bottom: 0.5rem;
-    }
-    
-    .pred-value {
-        font-size: 3rem;
-        font-weight: 700;
-        margin: 0.5rem 0;
-    }
-    
-    .pred-category {
-        font-size: 1.1rem;
+        font-size: 0.85rem;
+        opacity: 0.85;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
         font-weight: 600;
-        background: rgba(255,255,255,0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        display: inline-block;
-        margin-top: 0.5rem;
     }
-    
-    /* AQI Badge Colors */
-    .aqi-good { background: linear-gradient(135deg, #00e400 0%, #00b300 100%); }
-    .aqi-satisfactory { background: linear-gradient(135deg, #ffff00 0%, #ffcc00 100%); color: #333; }
-    .aqi-moderate { background: linear-gradient(135deg, #ff7e00 0%, #ff5500 100%); }
-    .aqi-poor { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
-    .aqi-verypoor { background: linear-gradient(135deg, #8f3f97 0%, #6b2f73 100%); }
-    .aqi-severe { background: linear-gradient(135deg, #7e0023 0%, #5a0019 100%); }
-    
+
+    .pred-value {
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin: 0.4rem 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .pred-category {
+        font-size: 1rem;
+        font-weight: 600;
+        background: rgba(255,255,255,0.18);
+        padding: 0.4rem 1.1rem;
+        border-radius: 24px;
+        display: inline-block;
+        margin-top: 0.4rem;
+        backdrop-filter: blur(4px);
+    }
+
+    /* AQI Badge Colors - warm amber/coral accent palette */
+    .aqi-good { background: linear-gradient(145deg, #059669 0%, #047857 100%); }
+    .aqi-satisfactory { background: linear-gradient(145deg, #ca8a04 0%, #a16207 100%); }
+    .aqi-moderate { background: linear-gradient(145deg, #ea580c 0%, #c2410c 100%); }
+    .aqi-poor { background: linear-gradient(145deg, #dc2626 0%, #991b1b 100%); }
+    .aqi-verypoor { background: linear-gradient(145deg, #9333ea 0%, #6b21a8 100%); }
+    .aqi-severe { background: linear-gradient(145deg, #881337 0%, #4c0519 100%); }
+
     /* Section Headers */
     .section-header {
-        font-size: 2rem;
+        font-size: 1.8rem;
         font-weight: 700;
-        color: #2c3e50;
-        margin: 2rem 0 1rem 0;
-        border-left: 5px solid #667eea;
+        color: #134e4a;
+        margin: 2.2rem 0 1.1rem 0;
+        border-left: 5px solid #0d9488;
         padding-left: 1rem;
     }
-    
+
     /* Stats Cards */
     .stat-card {
         background: white;
         padding: 1.5rem;
-        border-radius: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-        border-left: 4px solid #667eea;
+        border-radius: 14px;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+        border-left: 4px solid #0d9488;
     }
-    
+
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        background: linear-gradient(180deg, #ecfeff 0%, #cffafe 100%);
     }
-    
+
     /* Force sidebar text to be dark to contrast with the light background */
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] h3,
@@ -125,12 +137,12 @@ st.markdown("""
     [data-testid="stSidebar"] label,
     [data-testid="stSidebar"] li,
     [data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] * {
-        color: #2c3e50 !important;
+        color: #134e4a !important;
     }
-    
+
     /* Button Styling */
     .stButton>button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
         color: white;
         border: none;
         border-radius: 10px;
@@ -138,24 +150,24 @@ st.markdown("""
         font-weight: 600;
         transition: all 0.3s ease;
     }
-    
+
     .stButton>button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 18px rgba(8, 145, 178, 0.4);
     }
-    
+
     /* Hide Streamlit Branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    
+
     /* Custom Footer */
     .custom-footer {
         text-align: center;
         padding: 2rem;
-        color: #6c757d;
-        font-size: 0.9rem;
+        color: #64748b;
+        font-size: 0.88rem;
         margin-top: 3rem;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid #e2e8f0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -208,15 +220,15 @@ def main():
     with scale_col:
         # Kept your exact HTML layout, just updated the scale numbers to reflect EPA 0-500
         st.markdown("""
-        <div style='padding: 1rem; margin-top: 1rem;'>
-            <h4 style='font-size: 1rem; margin-bottom: 0.5rem; color: #2c3e50;'>📊 AQI Scale</h4>
+        <div style='padding: 1rem; margin-top: 1rem; background: white; border-radius: 14px; box-shadow: 0 4px 14px rgba(15,23,42,0.06);'>
+            <h4 style='font-size: 1rem; margin-bottom: 0.5rem; color: #134e4a;'>📊 AQI Scale</h4>
             <div style='font-size: 0.75rem;'>
-            <div style='padding: 0.25rem; background: #00e400; border-radius: 4px; margin: 0.15rem 0;'>🟢 Good (0-50)</div>
-            <div style='padding: 0.25rem; background: #ffff00; color: #333; border-radius: 4px; margin: 0.15rem 0;'>🟡 Moderate (51-100)</div>
-            <div style='padding: 0.25rem; background: #ff7e00; border-radius: 4px; margin: 0.15rem 0;'>🟠 Unhealthy/Sensitive (101-150)</div>
-            <div style='padding: 0.25rem; background: #ff0000; border-radius: 4px; margin: 0.15rem 0;'>🔴 Unhealthy (151-200)</div>
-            <div style='padding: 0.25rem; background: #8f3f97; border-radius: 4px; margin: 0.15rem 0;'>🟣 Very Unhealthy (201-300)</div>
-            <div style='padding: 0.25rem; background: #7e0023; border-radius: 4px; margin: 0.15rem 0;'>⚫ Hazardous (301+)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #059669; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟢 Good (0-50)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #ca8a04; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟡 Moderate (51-100)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #ea580c; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟠 Unhealthy/Sensitive (101-150)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #dc2626; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🔴 Unhealthy (151-200)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #9333ea; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>🟣 Very Unhealthy (201-300)</div>
+            <div style='padding: 0.3rem 0.5rem; background: #881337; color: white; border-radius: 6px; margin: 0.18rem 0; font-weight: 600;'>⚫ Hazardous (301+)</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -364,8 +376,8 @@ def main():
                 y=df_history['calculated_aqi'],
                 mode='lines+markers',
                 name='Historical AQI',
-                line=dict(color='#1f77b4', width=2),
-                marker=dict(size=4)
+                line=dict(color='#0891b2', width=2.5),
+                marker=dict(size=4, color='#0f766e')
             ))
             
             # Add prediction points
@@ -388,13 +400,13 @@ def main():
                     y=pred_values,
                     mode='markers',
                     name='Predictions',
-                    marker=dict(size=12, color='red', symbol='star')
+                    marker=dict(size=13, color='#ea580c', symbol='star', line=dict(width=1, color='#7c2d12'))
                 ))
             
             fig.update_layout(
                 title={
                     'text': "AQI Trend - Last 7 Days + Future Predictions",
-                    'font': {'size': 20, 'color': '#2c3e50', 'family': 'Inter'}
+                    'font': {'size': 20, 'color': '#134e4a', 'family': 'Poppins'}
                 },
                 xaxis_title="Date & Time",
                 yaxis_title="AQI Level (0-500 Scale)",
@@ -465,14 +477,14 @@ def main():
                     go.Bar(
                         x=[m['Model'] for m in err_data],
                         y=[m['RMSE'] for m in err_data],
-                        marker_color=['#7fcd00' if m.get('Best') else '#1f77b4' for m in err_data]
+                        marker_color=['#ea580c' if m.get('Best') else '#0891b2' for m in err_data]
                     )
                 ])
                 
                 fig_acc.update_layout(
                     title={
                         'text': "Model Error (Lower is Better)",
-                        'font': {'size': 16, 'color': '#2c3e50', 'family': 'Inter'}
+                        'font': {'size': 16, 'color': '#134e4a', 'family': 'Poppins'}
                     },
                     xaxis_title="Model",
                     yaxis_title="RMSE (PM2.5)",
@@ -490,7 +502,7 @@ def main():
         st.markdown('<h2 class="section-header">🔍 Model Interpretability (SHAP Analysis)</h2>', unsafe_allow_html=True)
         
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;'>
+        <div style='background: linear-gradient(135deg, #0f766e 0%, #0891b2 100%); padding: 1rem; border-radius: 12px; margin-bottom: 1rem;'>
             <p style='color: white; margin: 0;'><strong>🧠 Understanding Predictions:</strong> SHAP (SHapley Additive exPlanations) shows which features are most important for predictions.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -547,7 +559,7 @@ def main():
                             orientation='h',
                             marker=dict(
                                 color=mean_shap['importance'],
-                                colorscale='Viridis',
+                                colorscale='Teal',
                                 showscale=True,
                                 colorbar=dict(title="Impact")
                             )
